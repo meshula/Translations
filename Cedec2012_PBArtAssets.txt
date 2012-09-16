@@ -1,0 +1,404 @@
+1. How to design your art assets for Physically Based Rendering
+
+Tri-Ace R&D, Yoshiharu Gotanda
+
+These are notes on the slides found here.
+
+http://research.tri-ace.com/Data/cedec2012_FlowForPBR.pptx
+
+The intent is to submit them to Tri-Ace after proof-reading.
+
+The numbers refer to the corresponding slide number.
+
+
+
+2. Agenda
+
+Physically based visuals Creating Textures Diffuse Albedo Map Normal Map Reflectance Map
+Shininess Map IBL Texture Textures for ad-hoc rendering
+
+4. What’s a physically based visual?
+
+It’s not just about physically based rendering and shading. It’s not just about
+photorealism. It’s part of photorealism. It’s about making a compelling visual. Artists
+have to be able to control it.
+
+5.
+
+It’s not good enough to have good shaders A high quality visual is something that is
+determined by the skill of the artists There’s a certain knack to producing physical art
+assets. Convincing representations of materials and textures have to be made with
+knowledge of physical constraints.
+
+6. Checklist 1
+
+Is rendering done in linear space? Even if the asset is correctly made, it won’t render
+right unless in linear space.
+
+Is tone mapping done correctly? Even if linear, things won’t make sense without proper
+tone mapping.
+
+7. Checklist 2
+
+Are textures in the correct color space? The appropriate color space must be chosen
+according to the texture type. Textures can be converted to linear when rednering, or the
+texture itself can be in a linear color space.
+
+8. Checklist 3
+
+Is there a physical base shader? If you have it, you’re golden. If you don’t you will have
+less expressive power, but you can still get by.
+
+9. What makes Physically based visuals?
+
+you have to make textures, material parameters, lighting
+
+10. Textures
+
+for traditional ad hoc shaders the usual parameters have a look at the rendering, and
+adjust in Photoshop until things look right.
+
+for physically based shaders Textures have physical meanings. BRDF model parameters are
+stored in the texture What goes in the texture is determined when the shaders are created
+
+
+11. Texture correspondences
+
+Ad hoc shading vs. Physical
+
+Color Maps (the image is designed). vs. Diffuse Albedo map (texture represents diffuse
+reflectivity)
+
+Normal Maps, Height, Displacement Maps. Same; representing geometric shape at mesa-scale.
+
+Gloss Map (adjust size of specular highlights) vs. Shininess, Glossiness, Roughness;
+representing microscale geometry
+
+Specular Map (specular strength) vs. Reflectance Map (a value that replaces refractive
+index of object reflectivity)
+
+Fresnel map; no correspondence - the effects Fresnel models are part of the BRDF
+
+13. Diffuse Albedo Map 1 
+
+Texture can be considered the most important of the material
+parameters In some extreme cases, you might not need any, but in such cases of a single
+color over the object, normal maps, shininess, and AO maps will be more important.
+
+Conventional textures are merely pictures.
+
+14. Diffuse Albedo Map 2
+
+There is a range of plausible values and physical constraints when physically representing
+an element’s diffuse reflectivity. Set the range as you like such that the specular is
+balanced.
+
+At a certain size, metals don’t require a diffuse component, and using the default
+specular is not a problem.
+
+15. Diffuse Albedo Map 3
+
+16. Making Diffuse Albedo maps 
+
+These maps can be captured by a camera; it’s easy if the
+correct exposure is used. Removing specularity is a challenge.
+
+Manually painting is possible if realistic values are used. Values can be researched on
+the web, but use those values with caution. If the values are realistic an artist can draw
+freely.
+
+17. Using a photograph to make a diffuse albedo map
+
+Lighting is critical. If directivity is too strong use a diffuser or multiple lights.
+
+Remove the bias from the spectrum, whether it is natural light, or tungsten, correctly set
+the color temperature.
+
+
+18. Color calibration. 
+
+Use a Macbeth (X-rite) color chart. It’s easy to use for
+calibration because the values are published. Automatic calibration is possible. For more
+info,
+
+Color Checker Passport Implementation in Far Cry 3
+http://blog.selfshadow.com/publications/s2012-shading-course/mcauley/
+s2012_pbs_farcry3_slides.pdf
+http://blog.selfshadow.com/publications/s2012-shading-course/mcauley/
+s2012_pbs_farcry3_notes.pdf
+
+
+19. Left - calibrated, right - uncalibrated
+
+20. Making Albedo Maps from photographs
+
+Camera settings: RAW. No color correction. Linear (gamma 1.0) You don’t need to shoot HDR.
+(under the photograph) Is it really an albedo map? Careful!
+
+21. Specular Removal
+
+The specular has to be removed, because a physically based renderer is going to supply it
+from the material roughness. There are exceptions, when the specular needs to be higher
+than the theoretical specular; for example when rendering low-contrast video that needs to
+be whitish under white light sources.
+
+22. PL Polarizing filters remove some specular by themselves. The difference between a
+filtered and unfiltered image can also be used to manually remove specular. A tool might
+be able to automatically remove the lighting environment. It can be manually done by
+adjusting the look and guessing.
+
+23. PL Filters
+
+PL filters are often used to take clean pictures of the sea or sky. The filter is most
+useful vs a 45 degree angle of reflection, and a 90 degree scattering angle. They are
+effective in removing glare and reflection. PL filters filter light by not passing phases
+of light that are not aligned with the slits in the filter. A 56 degree angle (1.5
+refractive index) filters glass against air for example.
+
+24. Brewster angle 
+
+Polarized light is reflected at the boundary surface at different angles
+depending on refractive index.
+
+25. Left with filter, right without PL filter 
+26. Left, PL filter maximum effect, right, minimum
+27. What about rough surfaces? 11% difference in energy distribution, it might be 30% if very
+rought. Left PL filter maximum effect, right - minimum
+
+28. Automatic specular removal Limited automatic removal can be achieved if the
+environment is providing isoluminant colors, for example as might be provided from a
+hemispherical light. In practice, equally spaced light sources around a hemisphere can be
+removed if you can guess the specular contribution. You’d use the BRDF model to remove a
+minute amount of specular, but it’s difficult because you also need automatic estimation
+of the roughness. Images with and without a PL filter can be used to estimate roughness.
+
+29. Complications include multi-layer materials, and materials such as metal which have a
+wavelength dependent refractive index.
+
+Some special conditions like flat surfaces allow the removal of specular in photoshop.
+
+30. What about contrast and so on? It’s hard to say because of roughness. When inspecting
+by eye, specular appearance changes depending on viewing angle. Look at images captured
+with and without a PL filter.
+
+31. Using a PL filter to remove specular 
+
+Picking an angle to shoot that makes removal easy might not be possible. What to do? 
+
+32. Use this bit! 
+33. left without adjustment, right with adjustment 
+34. Preparing for comparison, shoot the color chart so that the true values can be
+referenced in sRGB space. Note that there is also specular on the chart! Having a familiar
+reference helps. From the albedo, high saturation values can be provided for a Lambert
+shader.
+
+35. Realistic diffuse reflectance range runs from about 1% for black to 90% for white, or
+2-230 in RGB. in sRGB, 32-243. 18% gray is approximately 200 in sRGB.
+
+36. On the left is a albedo texture created for an ad hoc renderer. On the right is a
+carefully constructed texture for a physically based renderer.
+
+38. Normal maps can be produced in the usual way because it is a modeling operation. 
+39. Low
+quality height maps can be produced in photoshop, but it is easy to produce shading errors
+that way. It’s better to produce the maps in 3d; sculpt tools typically automatically
+produce the normal maps.
+
+41. Reflectance maps 1
+
+Reflectance maps are a texture that directly expresses a vertical specular reflectance.
+Reflectance maps indirectly express the material’s refractive index. If the imaginary
+component of the refractive index is not zero, approximations such as Schlick cannot
+correctively represent the result. However, the difference is slight.
+
+43. Be careful, not all the math you find on the web is right. Seb Lagarde’s page is a good
+reference. 
+44. In a non-dielectric material there is virtually no change in refractive index
+vs wavelength. A grey scale texture is sufficient. For metallic materials, use a color
+map.
+
+45. graph - red: quartz, green: gold, blue: titanium dioxide, pink: sapphire table: Samples of
+refractive index near 550nm iron 2.7-3.33i ferric oxide 3.01 gold 0.4-2.54i silver
+0.12-3.34i copper 1.04-2.59i quartz 1.46 Sapphire 1.66 water 1.33 ivory 1.54 carbon
+2.0-1.0i
+
+Reference scalar samples, iron, gold, copper.
+
+47. Shininess map
+
+Also a modelling map (like normals) although the scale is different. This texture
+represents microfacets.
+
+This texture is particularly important for physically based shading.
+
+48. Left, shininess map, right no shininess map.
+
+49. Left Microfacet angles, right, average surface angles 
+50. Shininess map 
+51. Shininess is treated differently by every renderer 
+52. Making a shininess map 
+You only have to adjust the
+appearance when you manually create a shiness map. A glossiness chart can be useful. Refer
+to Seb lagarde’s article:
+http://seblagarde.wordpress.com/2012/04/30/dontnod-specular-and-glossiness-chart/
+
+53. Specular highlihgts and surface light sources
+
+Highlight differences depend on the light itself. A light that is close to the surface
+affects the size of the highlight. Strength of the highlight depends on the light source’s
+brightness. The highlight is greater if microfacets pick up a small light sources.
+Highlights weaken due to conservation of energy.
+
+54. Left: Specular shape for low shininess illuminated by a point source. Right High shininess
+specular response.
+
+55. Upper left, middle size light source, upper right large light source, lower left, middle
+shininess, lower right, small shininess
+
+56. Shininess has to be done in the shader. See the shader hack for image based lighting in
+the CEDEC 2011 paper on implementation. That shows a realtime specular GI solution. We
+really do need the next generation of GPU though to get to techniques like virutal point
+lights, and cone tracing in sparse voxel octrees. That technique can only handle a glossy
+specular, but it is quite realistic.
+
+57. Modifying shininess by noise map No realistic material is completely flat. We can increase
+quality with a noise map.
+
+58. left no noise, right noise. 
+59. Add about three layers of noise in Photoshop. Use a procedural
+noise if it’s available. 
+60. left to right, a little noise, a bit more, a lot
+
+61. Procedural Shininess maps 
+
+Since a shininess map is a geometry map, we should be able to
+generate it automatically. It’s accurate, and physical. It also provides anti-aliasing.
+see: “Rock-Solid Shading: Image Stability without Sacrificing Detail”
+http://advances.realtimerendering.com/s2012/index.html Scale is the difference between a
+normal map and a shininess map.
+http://blog.selfshadow.com/publications/s2012-shading-course/hoffman/
+
+62. Think of normal and shininess as geometry LOD. Left geo, middle normals, right shininess
+
+63. LEAN mapping is done in the shader + mipmapping (bilinear filtering) using the integral of
+the specular (exp) Beckmann Blinn-Phong instead of (cos). LEAN texture mapping has 5
+elements (x, y, x^2, xy, y^2) and requires some math in the shader for processing. A CLEAN
+map is a simplified version with three elements (x, y, x^2+y^2)
+
+64. LEAN and CLEAN maps have a high shader cost. As an alternative, shininess could be stored
+as A in the normal map. It could also be generated in the anisotropic case by encoding
+R=X, G=Y, B= shininessU, A = shininessV
+
+65. You could also consider a Toksvig map; shininess is generated by the following formula
+using the length of the normal generated from averaging mipmaps. (equation). This
+technique is used in Far Cry 3. see
+http://blog.selfshadow.com/publications/s2012-shading-course/mcauley/
+s2012_pbs_farcry3_slides.pdf
+
+66. Shininess values can be generated using non-linear least-squares. 
+67. Normal map -> derived shininess maps 
+68. left procedural shininess, right no procedural shininess, just plain old
+mipmaps
+
+69. Importance of shininess maps 
+
+It’s usually implemented to only affect specular, but in
+reality it affects diffuse as well. The importance of the map is enhanced if Oren-Nayar is
+used.
+
+72. Generating IBL textures 
+
+Photos can be used, they can be drawn by hand. Global Illumination
+can be used to generate lighting from the scene to a static map.
+
+
+73. Shoot HDR only. Use a fisheye lens and a mirror ball. These accessories are readily
+available. This method allows you to easily obtain realistic illumination. What the
+relationship between exposure and light intensity. If physically based lighting is not
+being used, adjustments have to be done visually.
+
+74. All about IBL Use a tool like Photoshop, edit in HDR. Use a linear color space. While
+drawing, adjust the exposure. Create a cube map. The environment can provide a lot of
+benefits, but it can require a lot of adjustment.
+
+75. Results from a dynamic scene 
+
+Generating environment maps from the scene in realtime is
+possible. Preprocess and map generation and calculating radiance maps can take a long
+time. The runtime cost is high but it is possible in the current generation. In the next
+generation two or more bounces might be practical. Animation and changes in the
+environment as might be seen in racing games require accurate updates.
+
+76. The IBL texture can be precomputed from the scene, to eliminate the cost of generating it.
+There can be multiple IBL maps. GI approach: High resolution IBL, IBL considers the
+bounce. GI accuracy depends on the number of IBL and can feel fake.
+
+77. No bounce, no IBL 
+78. 1 bounce 
+79. 2 bounce 
+80. 6 bounce 
+81. 4 bounce Image based GI
+
+83. Disadvantages of physically based rendering
+
+Subject to physical constraints Compatibility with stylized NPR rendering Layered
+materials might not be supported Coordination of look with ad hoc shaders Selection of
+physical properties might be a problem
+
+84. Ad hoc physical renderer 
+
+An ad hoc renderer is to some extent physical.
+
+Balance diffuse albedo and specular. Balance gloss map and specular map. Use specular
+color Use Fresnel
+
+
+85. Ad hoc albedo map 
+
+The following points are the same as for physical rendering.
+
+Contains 1/pi of Lambert shader? 0.318 times has not been included. Specular and diffuse
+are related by conservation of energy (increase and decrease them relative to each other)
+If there’s some kind of reverse Fresnel shader it’s value will also be multiplied against
+diffuse.
+
+86. Just like in the physically based case, a metallic material can have the diffuse turned
+off. Without ambient and GI being handled properly, it’ll be completely black except for
+the specular. If so, add diffuse.
+
+87. Ad hoc gloss map 
+
+Normalized specular coefficient is proportional to shininess A simple
+method would be to also use this map as a specular gloss map. The balance of specular and
+diffuse collapses if there is a scale factor, such as a specular map. If you have a 1/pi
+in the diffuse, gloss = spec intensity map * 0.125. If you don’t have 1/pi in the diffuse,
+gloss specular intensity map * 0.125 * pi
+
+88. Ad hoc specular map 
+
+Balance the diffuse map against the specular, as well as gloss. Shader
+parameters can also be adjusted. Sum of both of the reflectances should not exceed one.
+It’s difficult for an artist to adjust the sum of the integral rather than the sum of the
+parameters though. Perhaps a plugin would help.
+
+89. Ad hoc Fresnel 
+
+Fresnel shader is always on. ... Fresnel values can be calculated from the
+refractive index obtained from physics. Charts and helper plugins can be used.
+
+90. Summary 
+
+A physical renderer can save you from the hassle of adjusting parameters on an ad
+hoc shader. Manual adjustment of the base scene (environmental light source) is minimized.
+Tips and constraints on texture parameters and generation were presented, as well as when
+to ignore the constraints. Physical principles can be the basis of convincing
+photorealistic renders.
+
+
+
+
+
+
+
+
+
