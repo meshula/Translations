@@ -1,0 +1,401 @@
+HDR Theory & Practice, by Hajime Uchimura, Polyphony Digital Inc.
+
+SDR/HDR Television System basics
+GTSPORT SDR 
+GTSPORT HDR
+Troubles and solutions
+Preparing assets for HDR
+Future work
+
+3. Common Question: Is it worth moving to HDR?
+
+yup.
+It has to be done right to be attractive.
+
+5. Let's have a look at HDR
+6. What is an HDR TV?
+7. The TV gets a single and converts it to light
+Historically film was transmissive
+LCD are transmissive
+Moving forward, there'll be electroluminscent displays
+
+8. SDR > HDR
+High contrast high output screens are on the way
+These displays require new encodings
+HDR10, Hybrid Log-Gamma (HLG), Dolby Vision, etc.
+
+HDR - high dynamic range
+SDR - standard dynamic range
+
+9. nit is a measure of brightness.
+1 nit = 1 cd/m^2
+
+Typical SDR television white is 100 nits
+HDR screens have brightnesses ranging from 1000 to 10,000 nits.
+That's 100x brighter.
+
+10. dynamic range
+Black and white change
+black brightness is referred to as B nit,
+white brightness as W nit
+Dynamic range is log (W/B)
+It seems people can perceive a dynamic range of 12.
+
+There isnt' a direct relationship between values in the signal and on the display.
+
+12. Gamma
+
+https://www.desmos.com/calculator/flgeimpisj
+
+Transformation from signal to light
+There's variation; sRGB, bt.709, bt.1886
+
+13. sRGB
+A power relation. Not quite what a TV displays. See the ITU-R spec for details
+
+14. HDR Gamma
+
+HDR10(PG) and HLG are two common functions.
+
+15. We're not going to call them HDR Gamma, we're going to call then EOTF/OETF
+
+Electro-optical transfer function, and Opto-electronic transfer function
+
+
+17. HDR10 OETF
+
+Perceptual quantizer curve, maps a 0 to 1 signal to 0, 10000 nits.
+
+https://www.desmos.com/calculator/78yfr5z9yx
+
+comparison to SDR gamma 2.4; 100 nits vs 10,000.
+https://www.desmos.com/calculator/78yfr5z9yx
+
+That's not going to work.
+
+20. Comparison to SDR, the dynamic range of SDR is barely visible vs HDR.
+
+
+21. HDR combines brightness and color.
+
+SDR(sRGB) OETF: sRGB/Gamma, color Rec.709
+HDR(HDR10) OETF: PQ, color Rec.2020
+
+22. Color space
+
+Picture illustrates the CIEXYZ human perceptible color space.
+CEDEC 2016 had a presentation on coor science for games.
+https://www.slideshare.net/nikuque/color-science-for-gamesjp
+
+
+23. Rec.709 diagram and chromaticities
+24. Rec.2020
+25. Rec.2020 captures more of red blue and green.
+
+27. There's a lot to know about TVs, right?
+
+28. Transitioning from current methods to HDR
+SDR First regime
+
+GTSPORT HDR history
+GTSport supported the first HDR TVs.
+The feature was called "Scapes
+There was a new photorealistic photo mode
+These first assets did not have wide color gamut
+
+30. Move to HDR
+Manufacturers were like "we're making HDR displays, got any content for us?"
+Of course we'll do that :)
+We've got some work to do.
+
+The model materials were Rec.709/SRGB, Scapes was.
+Rendering was in Rec.709 linear and output to sRGB
+All SRGB.
+
+34. vivid HDR
+
+Framebuffers were upgraded to HDR10. Rec.709 rendering could be moved to
+Rec 2020 and output through a PQ curve.
+
+this is vivid HDR.
+
+35. This was our first result. It was very good; the screen was nice and bright,
+we were surprised it could be done in real time.
+
+37. Downsides
+No improvement to color
+Rec.709 kind of sucks
+Colors are not very natural looking.
+
+38/39/40 First renderings from 2015
+
+41. Impetus for Native HDR
+Car material spectral representtaion
+Raw images are wider than 709
+To get the pictures we want, a move to full HDR was desired.
+
+42. Creating HDR first
+43. Wide color gamut pipeline
+What color space should lighting occur in?
+
+- scRGB? CIE XYZ? Aces CG? Rec.2020?
+
+scRGB has wide color and high dynamic range
+scRGB hasn't got a well matched frame buffer format.
+
+CIEXYZ is the widest gamut, easy to get from there to Rec.2020
+The gamut is too wide.
+The white point doesn't match HDR10's.
+dang
+
+46. The upper triangles show full spectral lighting, lower are XYZ.
+
+47. ACES
+Academy Color Encoding System.
+The Reference Rendering Transform and Output Device Transform have a lot of magic
+numbers.
+
+48. Rec.2020
+HDR10's color space is Rec.2020
+Most HDR TVs can almost do this
+Same white point as SRGB. 
+Probably the best choice
+
+49. Lead engineer's message. "Looks like bt2020 is it. Scary"
+
+50. Merits and demerits of wide gamut
+Car lighting and materials will look good
+255, 0, 0 is still an extreme color
+
+54. color temperature
+sRGB color gamut is straight forward
+Rec.2020 accomodates a color temperature from 2300K to 12000K
+European night lighting is very orange
+There's also areas without aritifical lighting
+
+Demerits
+Hard to get monitors that can display wide gamut
+No HDR10 displays with full output
+Hard for artists to verify, they have to rely on engineers to check things
+Wide gamut files have to be made, the ability to make them is a risk
+
+57. And what about wide gamut rendering
+Different colors, and feeling.
+The output is a lot like Camera RAW
+
+58. What does Rec.2020 give us?
+
+60-68 An image rendering correctly into Rec.709, an image rendered into 
+Rec.2020 clips if directly moved to Rec.2020. Yellow's an issue. Also... Gamut
+clipping on a naturalistic image. Rec.2020 colors clipped if dropped into 709.
+
+69-76. As we increase brightness the gamut clips towards white. We need tone
+mapping to bring colors back from white. What tonemap can resolve this?
+
+77. We can make a curve like this.
+78-79 We can clamp the brightness around here, making a smoother transition to
+white.
+
+80. John Hable (Naughty Dog) Filmic curve
+Extremely shallow
+Seems to be built for a 200nit display
+
+81. AMD Filmic
+Timothy Lottes, 2016
+Adjutable peak
+No linear section
+
+82. ACES RRT+ODT
+Magic numbers galore
+Lots of people worked on it
+A lot of parameters to tweak
+
+83. Comparison
+They all have a lot of parameters and aren't aimed at artistic control
+The Naughty Dog curve is the only one an artist can really control
+
+84/85. What do artists want?
+- Control over a linear segment
+- Contrast and black level
+- smoothness of the curve
+
+What can satisfy these three points?
+
+86. Result, GT Tonemap, with a "triple section"
+87. The toe controls the black contrast.
+88. The mid section is linear
+89. The shoulder is smooth
+90. Put them together for the "triple section"
+91. Play with it here: https://www.desmos.com/calculator/et1qmcg10s
+
+92. GT Tonemap HDR image, showing linear and PQ tonemap
+93. GT Tonemap HDR image, showing Rec2020 linear to sRGB mapping
+
+94-104. How does it look
+
+105-110. Hue Shift. 
+RGB can be individually tone mapped
+High precision control over color gradation
+Example pictures
+
+111-117. There is a camera simulator in game, but how does a real camera behave?
+Real cameras also exhibit a hue shift. Pretty much like our in game samples.
+
+118. GT Tonemap
+Simple is best.
+In the case of 709 output, the Rec2020 to 709 rewrite is possible.
+
+120. SDR users are important
+Most tvs are still SDR
+HDR tvs are in the minority
+In either case we want a good picture.
+
+121. The GT Tonmap lets us reasonably parameterize for a lot of TVs with a single
+curve. The same mid curve applies to SDR and HDR, giving both a qualitative 
+similarity.
+
+122-123. Graph of a 100 nit monitor response, no output above 100 nits.
+A 250 nit output gives us a bit more brightness
+A 1000 nit monitor gives us wide dynamic range
+
+124. We're going to get a best possible result for SDR, and additional brightness
+for HDR.
+
+125. How do we qualify best?
+- brightness scaling
+- looks good on most tvs
+- 5x dynamic range, can utilize DCI-P3 displays
+
+- brighter than a 2.5x range
+- It's similar to the Naughty Dog curve, with a 2.5x range in the linear section
+
+126-128. SDR darker? HDR brighter?
+- GTSport tries to balance shadow in SDR
+- Increasing brightness in HDR reduces dynamic range
+- blacks and whites are controlled
+- SDR is bright enough
+
+The result is a balance between HDR and SDR
+
+129. Color grading
+GTSport uses a lut
+The lut is authored in the Rec.2020 PQ space
+SDR is achieved from the Rec.2020 PQ via a mapping
+It's applied simultaneously with the tone map relative to a midpoint
+It's hard to explain with words...
+
+130-131. Post Effects
+The post effects are applied whether SDR or HDR
+Different parameters are required for HDR and SDR
+energy distribution is different
+all kinds of parameters like for the lens are different
+
+132. Movies
+Movies are encoding in Rec.2020 linear for both SDR/HDR
+The GT tonemap is applied. 
+
+133. It was really hard to get the same image on different tvs.
+
+134. Summary
+We made an easy to use tone map
+it worked with a lut
+
+135, wide gamut high dynamic range
+
+136. Car materials
+Full spectral response fitted to a BRDF
+using these steps
+1. Samples obtained in the CIE1931 XYZ space
+2. samples fitted to a BRDF
+3. enough samples to minimize color error, parameter tweaking
+
+Colors in CIE E00
+Lighting for BT.2020 space, D65 whitepoint
+
+137. Shows a sample plot, refer to "Toward Efficient Acquisition of BRDFs with
+Fewer Samples" to learn more.
+
+138. Shows (upper) aquisition, (lower) rendering through BRDF
+
+139. Other assets are run through Scapes
+Backgrounds are bracketed photography, 3ev 7 ~ 2ev 12, roughly
+Panoramas are 4k bracketed RAW
+Self generated HDR from engine
+
+140. Base is Paul Debevec's hdr technique
+Camera sensor calibration is according to Mitsunaga99
+Panorama stitching happens at the same time as HDR conforming
+
+141-142. See Debevec 97
+143. Naively applying Debevec yields artifacts
+It emphasizes noise
+heavy denoising is required
+144. Different camera RAW formats have their own color space
+Sensor characteristics have to be taken into account
+
+145-150 color charts were scanned to characterize response, under sunlight and
+LED lighting. Sensor response is pretty huge, JPEG gamut is a crying shame
+
+151. We store images in Radiance HDR. We stored color space meta data in a 
+sidecar file, we named hdrmix. Tools and viewers had to open these files.
+Loading HDR files into Photoshop didn't seem to give us what we wanted.
+Exporting from Photoshop requires OpenEXR, and was a PITA.
+
+152. Scapes translated to JPEG XR.
+Rec.2020 color space, roughly
+The pixel format was Half or RGBE.
+We encoded and decoded from a proprietary format
+6000x4000 decode took less than 3 seconds, and the image requires lesss than 7MB
+
+153. Tracks and Menus
+- there was a lot of Rec709 data to convert
+- we had to watch out for texture banding
+- ideally creation done in rec2020
+- lighting in rec2020
+- cars in rec2020
+- we got rich colors
+- Menu assets were provided in rec709 and required conversion
+
+154-155 Future work and conclusions
+- not many HDR monitors we can give to artists
+- TVs are way too big and don't have good color accuracy
+...
+- there's a lot of work to do, anyone willing to help?
+
+156. We introduced GTSport's HDR technology
+HDR displays look pretty attractive
+If you have a chance to look at the game in HDR please do
+Art should be approached from an HDR first perspective, good looking SDR follows
+
+157. Questions, contact, copyright
+
+158. Aces ODT sample
+ACES ODT is not paramteric. It's designed to accomodate a wide variety of TVs.
+That sounds good I suppose.
+
+ACES RRT is full of hard to use magic numbers. Not clear how to apply it to our
+cars.
+
+160. Typical result, there's a lot of color information before tonemapping, and
+after mapping it doesn't look awesome.
+
+161. RGB tone maps vs Yxy tonemaps
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
